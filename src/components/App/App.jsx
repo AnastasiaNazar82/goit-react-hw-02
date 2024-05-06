@@ -19,7 +19,6 @@ export default function App() {
   }, [feedbacks]);
 
   const updateFeedback = (feedbackType) => {
-    // console.log(feedbackType);
     setFeedbacks({
       ...feedbacks,
       [feedbackType]: feedbacks[feedbackType] + 1,
