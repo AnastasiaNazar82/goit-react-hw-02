@@ -1,63 +1,59 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import css from "./App.module.css";
 import Description from "../Description/Description";
 import Options from "../Options/Options";
 import Feedback from "../Feedback/Feedback";
 import Notification from "../Notification/Notification";
 
-const ClickCounter = ({ value, onCount }) => {
-  return <button onClick={onCount}>Clicks: {value}</button>;
-};
-
 export default function App() {
-  const [clicks, setClicks] = useState(0);
+  const [feedback, setFeedback] = useState(() => {
+    const saveFeedback = localStorage.getItem("feedback");
+    if (saveFeedback !== null) {
+      return JSON.parse(saveFeedback);
+    }
+    return { good: 0, neutral: 0, bad: 0 };
+  });
 
-  const handleClick = () => {
-    setClicks(clicks + 1);
+  useEffect(() => {
+    localStorage.setItem("feedback", JSON.stringify(feedback));
+  }, [feedback]);
+
+  const updateFeedback = (feedbackType) => {
+    console.log(feedbackType);
+    setFeedback({
+      ...feedback,
+      [feedbackType]: feedback[feedbackType] + 1,
+    });
   };
 
-  const handleReset = () => {
-    setClicks(0);
-  };
+  const totalFeedback = feedback.good + feedback.neutral + feedback.bad;
 
-  const [isVisible, setIsVisible] = useState(false);
+  const positiveFeedback = Math.round((feedback.good / totalFeedback) * 100);
 
-  const handleToggle = () => {
-    setIsVisible(!isVisible);
+  const resetFeedback = () => {
+    setFeedback(0);
   };
 
   return (
     <div className={css.container}>
       <Description />
-      <Options />
-
-      <Feedback />
-
-      <Notification />
-      <div className={css.cont}>
-        <h1>State in React</h1>
-
-        <ClickCounter value={clicks} onCount={handleClick} />
-        <ClickCounter value={clicks} onCount={handleClick} />
-        <ClickCounter value={clicks} onCount={handleClick} />
-        <button onClick={handleReset}>Reset</button>
-
-        <hr />
-
-        <hr />
-        <button onClick={handleToggle}>{isVisible ? "Hide" : "Show"}</button>
-        {isVisible && (
-          <p>
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Corrupti,
-            voluptatem. Reprehenderit eum beatae adipisci alias illo, recusandae
-            dignissimos distinctio aperiam tempore, omnis exercitationem
-            cupiditate sint eveniet mollitia suscipit iusto! Delectus
-            exercitationem officiis ducimus ex? Tenetur ad dolorem natus unde
-            nostrum distinctio repudiandae voluptatem soluta, vero, quisquam eos
-            rerum facere consectetur.
-          </p>
-        )}
-      </div>
+      <Options
+        feedback={feedback}
+        updateFeedback={updateFeedback}
+        totalFeedback={totalFeedback}
+        resetFeedback={resetFeedback}
+      />
+      {totalFeedback > 0 ? (
+        <Feedback
+          good={feedback.good}
+          neutral={feedback.neutral}
+          bad={feedback.bad}
+          totalFeedback={totalFeedback}
+          positiveFeedback={positiveFeedback}
+        />
+      ) : (
+        <Notification />
+      )}
     </div>
   );
 }
